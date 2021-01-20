@@ -4,19 +4,19 @@
 #include <ESPAsyncWebServer.h>
 
 //SET SSID HERE
-#define ssid "Smart_car_01"             //SET SSID HERE
+#define ssid "Smart_car_01" //SET SSID HERE
 //SET SSID HERE
 
 // PIN DEFINING
-#define MA  D3
-#define MB  D4
-#define MAPWM  D1
-#define MBPWM  D2
-#define Speed  850
+#define MA D3
+#define MB D4
+#define MAPWM D1
+#define MBPWM D2
+#define Speed 850
 
 // Variable use for transmittion, so don't touch.
 String sliderValue = "0";
-const char* PARAM_INPUT = "value";
+const char *PARAM_INPUT = "value";
 
 // Direction , Slider Value
 int Direction = 0, S = 0;
@@ -157,25 +157,29 @@ function sendData()
 
 //END OF HTML PAGE
 
-
-
-void setup() {
+void setup()
+{
 
   //Pin Configuration
-  pinMode(MA,OUTPUT);
-  pinMode(MAPWM,OUTPUT);
-  pinMode(MB,OUTPUT);
-  pinMode(MBPWM,OUTPUT);
+  pinMode(MA, OUTPUT);
+  pinMode(MAPWM, OUTPUT);
+  pinMode(MB, OUTPUT);
+  pinMode(MBPWM, OUTPUT);
 
-  digitalWrite(MA , LOW);
-  digitalWrite(MB , LOW);
-  analogWrite(MAPWM,0);
-  analogWrite(MBPWM,0);
+  digitalWrite(MA, LOW);
+  digitalWrite(MB, LOW);
+  analogWrite(MAPWM, 0);
+  analogWrite(MBPWM, 0);
 
   //Serial monitor and WIFI Initialize
+  IPAddress local_ip = {1, 1, 1, 1};
+  IPAddress gateway = {192, 168, 1, 1};
+  IPAddress subnet = {255, 255, 255, 0};
+
   Serial.begin(115200);
   Serial.println();
   Serial.print("Setting");
+  WiFi.softAPConfig(local_ip,gateway,subnet);
   Serial.println(WiFi.softAP(ssid, "", 1, 0, 1) ? "Ready" : "Failed!");
   IPAddress IP = WiFi.softAPIP();
   Serial.print("AP IP address: ");
@@ -183,52 +187,76 @@ void setup() {
   //END
 
   //SENDING WEBPAGE TO IP
-  server.on("/", HTTP_GET, [](AsyncWebServerRequest *request){
+  server.on("/", HTTP_GET, [](AsyncWebServerRequest *request) {
     request->send_P(200, "text/html", index_html);
   });
 
   //GET 'X' AXIS OF ANALOG JOY STICK
- server.on("/Direction", HTTP_GET, [] (AsyncWebServerRequest *request) {
+  server.on("/Direction", HTTP_GET, [](AsyncWebServerRequest *request) {
     String inputMessage;
     // GET input1 value on <ESP_IP>/slider?value=<inputMessage>
-    if (request->hasParam(PARAM_INPUT)) {
+    if (request->hasParam(PARAM_INPUT))
+    {
       inputMessage = request->getParam(PARAM_INPUT)->value();
       Direction = inputMessage.toInt();
-      }
-    else 
+    }
+    else
       inputMessage = "No message sent";
     request->send(200, "text/plain", "OK");
-       });
+  });
 
   //GET SLIDER VALUE
- server.on("/slider", HTTP_GET, [] (AsyncWebServerRequest *request) {
+  server.on("/slider", HTTP_GET, [](AsyncWebServerRequest *request) {
     String inputMessage;
     // GET input1 value on <ESP_IP>/slider?value=<inputMessage>
-    if (request->hasParam(PARAM_INPUT)) {
+    if (request->hasParam(PARAM_INPUT))
+    {
       inputMessage = request->getParam(PARAM_INPUT)->value();
       sliderValue = inputMessage;
       S = sliderValue.toInt();
-      }
-    else 
+    }
+    else
       inputMessage = "No message sent";
     request->send(200, "text/plain", "OK");
   });
 
   //START SERVER.
   server.begin();
-
 }
 
-void loop() {
+void loop()
+{
 
-  switch(Direction)
+  switch (Direction)
   {
-    case Stop :        analogWrite(MAPWM,0); analogWrite(MBPWM,0); break;
-    case Forward :     digitalWrite(MA,HIGH); digitalWrite(MB,HIGH); analogWrite(MAPWM,Speed); analogWrite(MBPWM,Speed); break;
-    case Backward :    digitalWrite(MA,LOW); digitalWrite(MB,LOW); analogWrite(MAPWM,Speed); analogWrite(MBPWM,Speed); break;
-    case Left :        digitalWrite(MA,LOW); digitalWrite(MB,HIGH); analogWrite(MAPWM,Speed); analogWrite(MBPWM,Speed); break;
-    case Right :       digitalWrite(MA,HIGH); digitalWrite(MB,LOW); analogWrite(MAPWM,Speed); analogWrite(MBPWM,Speed); break;
-
+  case Stop:
+    analogWrite(MAPWM, 0);
+    analogWrite(MBPWM, 0);
+    break;
+  case Forward:
+    digitalWrite(MA, HIGH);
+    digitalWrite(MB, HIGH);
+    analogWrite(MAPWM, Speed);
+    analogWrite(MBPWM, Speed);
+    break;
+  case Backward:
+    digitalWrite(MA, LOW);
+    digitalWrite(MB, LOW);
+    analogWrite(MAPWM, Speed);
+    analogWrite(MBPWM, Speed);
+    break;
+  case Left:
+    digitalWrite(MA, LOW);
+    digitalWrite(MB, HIGH);
+    analogWrite(MAPWM, Speed);
+    analogWrite(MBPWM, Speed);
+    break;
+  case Right:
+    digitalWrite(MA, HIGH);
+    digitalWrite(MB, LOW);
+    analogWrite(MAPWM, Speed);
+    analogWrite(MBPWM, Speed);
+    break;
   }
-    
+
 } // End Loop
