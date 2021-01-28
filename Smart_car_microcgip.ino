@@ -34,124 +34,78 @@ AsyncWebServer server(80);
 
 //HTML + CSS + JAVASCRIPT MAIN PAGE /////////////////////////
 const char index_html[] PROGMEM = R"rawliteral(
-<!DOCTYPE HTML><html>
+<!DOCTYPE html>
+<html>
+
 <head>
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>SMART CAR</title>
-  <style>
-    html {font-family: Arial; display: inline-block; text-align: center;  touch-action: none;}
-    h2 {font-size: 2.3rem;}
-    p {font-size: 1.9rem;}
-    body {max-width: 400px; margin:0px auto; padding-bottom: 25px;}
-    .slider { -webkit-appearance: none; margin: 14px; width: 360px; height: 25px; background: #FFD65C;
-      outline: none; -webkit-transition: .2s; transition: opacity .2s;}
-    .slider::-webkit-slider-thumb {-webkit-appearance: none; appearance: none; width: 35px; height: 35px; background: #003249; cursor: pointer;}
-    .slider::-moz-range-thumb { width: 35px; height: 35px; background: #003249; cursor: pointer; }
-  #main {  align-items: auto;  display: flex;  height: 100vh;  justify-content: auto;  margin: 46px;  width: 100vw;}
-  #wrapper {border: 3px solid red;width: 300px; height: 300px; }
-  .joystick { background-color: grey; border-radius: 100%; cursor: pointer; height: 100%; user-select: none; width: 100%; }
-  </style>
+    <style>
+        .button {
+            background-color: #990033;
+            border: none;
+            border-radius: 4px;
+            color: white;
+            padding: 30px 30px;
+            font-size: 20px;
+            text-align: center;
+            direction: none;
+            text-decoration: none;
+        }
+    </style>
+    <meta charset="UTF-8" http-equiv="Content-Type" content="text/html">
+    <meta name="viewport" content="width=device-width, initial-scale=1,height = device-height">
+    <title>Control_car</title>
 </head>
-<body>
-  <h2>SMART CAR</h2>
-  <p><span id="textSliderValue">0</span></p>
-  <p><input type="range" onchange="updateSliderPWM(this)" id="pwmSlider" min="0" max="100" value="0" step="1" class="slider"></p>
-  <p><div id="main"><div id="wrapper"></div></div></p>
-<script>
 
-var Direction = 0;
-
-function updateSliderPWM(element) {
-  var sliderValue = document.getElementById("pwmSlider").value;
-  document.getElementById("textSliderValue").innerHTML = sliderValue;
-  console.log(sliderValue);
-  var xhr = new XMLHttpRequest();
-  xhr.open("GET", "/slider?value="+sliderValue, true);
-  xhr.send();
-}
-const joystick = createJoystick(document.getElementById('wrapper'));
-function createJoystick(parent) {
-  const maxDiff = 100;
-  const stick = document.createElement('div');
-  stick.classList.add('joystick');
-
-  stick.addEventListener('mousedown', handleMouseDown);
-  document.addEventListener('mousemove', handleMouseMove);
-  document.addEventListener('mouseup', handleMouseUp);
-  stick.addEventListener('touchstart', handleMouseDown);
-  document.addEventListener('touchmove', handleMouseMove);
-  document.addEventListener('touchend', handleMouseUp);
-
-  let dragStart = null;
-  let currentPos = { x: 0, y: 0 };
-
-  function handleMouseDown(event) {
-    stick.style.transition = '0s';
-    if (event.changedTouches) {
-      dragStart = {
-        x: event.changedTouches[0].clientX,
-        y: event.changedTouches[0].clientY,
-      };
-      return;
-    }
-    dragStart = {
-      x: event.clientX,
-      y: event.clientY,
-    };
-  
-  Direction = 0;
-
-  }
-
-  function handleMouseMove(event) {
-    if (dragStart === null) return;
-    event.preventDefault();
-    if (event.changedTouches) {
-      event.clientX = event.changedTouches[0].clientX;
-      event.clientY = event.changedTouches[0].clientY;
-    }
-    const xDiff = event.clientX - dragStart.x;
-    const yDiff = event.clientY - dragStart.y;
-    const angle = Math.atan2(yDiff, xDiff);
-    const distance = Math.min(maxDiff, Math.hypot(xDiff, yDiff));
-    const xNew = distance * Math.cos(angle);
-    const yNew = distance * Math.sin(angle);
-    stick.style.transform = `translate3d(${xNew}px, ${yNew}px, 0px)`;
-    currentPos = { x: xNew, y: yNew };
-  if((yNew < "-20")&&(xNew>"-45"&&xNew<"45")) Direction =1;
-  if((yNew > "20")&&(xNew>"-45"&&xNew<"45")) Direction =2;
-    if((xNew < "-20")&&(yNew>"-45"&&yNew<"45")) Direction =3;
-  if((xNew > "20")&&(yNew>"-45"&&yNew<"45")) Direction =4;
-  if((xNew < "20"&&xNew > "-20")&&(yNew<"20"&&yNew>"-20")) Direction = 0;
-  }
-
-  function handleMouseUp(event) {
-    if (dragStart === null) return;
-    stick.style.transition = '.2s';
-    stick.style.transform = `translate3d(0px, 0px, 0px)`;
-    dragStart = null;
-    currentPos = { x: 0, y: 0 };
-    Direction = 0;
-  }
-
-  parent.appendChild(stick);
-  return {
-    getPosition: () => currentPos,
-  };
-}
-
-setInterval(function(){sendData();},100);
-
-function sendData()
-{
-  document.getElementById("textSliderValue").innerHTML = Direction;
-  var xhr = new XMLHttpRequest();
-  xhr.open("GET", "/Direction?value="+Direction, true);
-  xhr.send();
-}
-
-</script>
+<body onload='init()'>
+    <center>
+        <h1>Car control</h1>
+        <br> \
+        <input type="button" class="button" id="btnf" value="forward">
+        <br><br>
+        <input type="button" class="button" id="btnl" value="<< Left &nbsp;">
+        <input type="button" class="button" id="btnr" value="Right >>">
+        <br><br>
+        <input type="button" class="button" id="btnb" value="backward">
+        <div id="status">...</div>
+    </center>
 </body>
+<script type="text/javascript">function init() {
+
+        document.getElementById('btnf').addEventListener('touchstart', movef, false);
+        document.getElementById('btnf').addEventListener('touchend', stopcar, false);
+
+        document.getElementById('btnl').addEventListener('touchstart', movel, false);
+        document.getElementById('btnl').addEventListener('touchend', stopcar, false);
+
+        document.getElementById('btnr').addEventListener('touchstart', mover, false);
+        document.getElementById('btnr').addEventListener('touchend', stopcar, false);
+
+        document.getElementById('btnb').addEventListener('touchstart', moveb, false);
+        document.getElementById('btnb').addEventListener('touchend', stopcar, false);
+
+    } function move(dir) {
+        document.getElementById('status').innerHTML = dir;
+        var requst = new XMLHttpRequest();
+        requst.open('GER', '/engines/' + dir, true);
+        requst.send(null);
+    }
+    function movef() {
+        move('f');
+    }
+    function movel() {
+        move('l');
+    } function mover() {
+        move('r');
+    }
+    function moveb() {
+        move('b');
+    } function stopcar() {
+        document.getElementById('status').innerHTML = 's';
+        var requst = new XMLHttpRequest();
+        requst.open('GER', '/engines/s',true);
+        requst.send(null);
+    }
+</script>
 </html>
 )rawliteral";
 
@@ -179,7 +133,7 @@ void setup()
   Serial.begin(115200);
   Serial.println();
   Serial.print("Setting");
-  WiFi.softAPConfig(local_ip,gateway,subnet);
+  WiFi.softAPConfig(local_ip, gateway, subnet);
   Serial.println(WiFi.softAP(ssid, "", 1, 0, 1) ? "Ready" : "Failed!");
   IPAddress IP = WiFi.softAPIP();
   Serial.print("AP IP address: ");
@@ -192,7 +146,7 @@ void setup()
   });
 
   //GET 'X' AXIS OF ANALOG JOY STICK
-  server.on("/Direction", HTTP_GET, [](AsyncWebServerRequest *request) {
+  server.on("/engines/", HTTP_GET, [](AsyncWebServerRequest *request) {
     String inputMessage;
     // GET input1 value on <ESP_IP>/slider?value=<inputMessage>
     if (request->hasParam(PARAM_INPUT))
@@ -205,58 +159,45 @@ void setup()
     request->send(200, "text/plain", "OK");
   });
 
-  //GET SLIDER VALUE
-  server.on("/slider", HTTP_GET, [](AsyncWebServerRequest *request) {
-    String inputMessage;
-    // GET input1 value on <ESP_IP>/slider?value=<inputMessage>
-    if (request->hasParam(PARAM_INPUT))
-    {
-      inputMessage = request->getParam(PARAM_INPUT)->value();
-      sliderValue = inputMessage;
-      S = sliderValue.toInt();
-    }
-    else
-      inputMessage = "No message sent";
-    request->send(200, "text/plain", "OK");
-  });
-
   //START SERVER.
   server.begin();
+ 
 }
 
 void loop()
 {
+  Serial.println(Direction);
+  // switch (Direction)
+  // {
+  // case Stop:
+  //   analogWrite(MAPWM, 0);
+  //   analogWrite(MBPWM, 0);
+  //   break;
+  // case Forward:
+  //   digitalWrite(MA, HIGH);
+  //   digitalWrite(MB, HIGH);
+  //   analogWrite(MAPWM, Speed);
+  //   analogWrite(MBPWM, Speed);
+  //   break;
+  // case Backward:
+  //   digitalWrite(MA, LOW);
+  //   digitalWrite(MB, LOW);
+  //   analogWrite(MAPWM, Speed);
+  //   analogWrite(MBPWM, Speed);
+  //   break;
+  // case Left:
+  //   digitalWrite(MA, LOW);
+  //   digitalWrite(MB, HIGH);
+  //   analogWrite(MAPWM, Speed);
+  //   analogWrite(MBPWM, Speed);
+  //   break;
+  // case Right:
+  //   digitalWrite(MA, HIGH);
+  //   digitalWrite(MB, LOW);
+  //   analogWrite(MAPWM, Speed);
+  //   analogWrite(MBPWM, Speed);
+  //   break;
+  // }
 
-  switch (Direction)
-  {
-  case Stop:
-    analogWrite(MAPWM, 0);
-    analogWrite(MBPWM, 0);
-    break;
-  case Forward:
-    digitalWrite(MA, HIGH);
-    digitalWrite(MB, HIGH);
-    analogWrite(MAPWM, Speed);
-    analogWrite(MBPWM, Speed);
-    break;
-  case Backward:
-    digitalWrite(MA, LOW);
-    digitalWrite(MB, LOW);
-    analogWrite(MAPWM, Speed);
-    analogWrite(MBPWM, Speed);
-    break;
-  case Left:
-    digitalWrite(MA, LOW);
-    digitalWrite(MB, HIGH);
-    analogWrite(MAPWM, Speed);
-    analogWrite(MBPWM, Speed);
-    break;
-  case Right:
-    digitalWrite(MA, HIGH);
-    digitalWrite(MB, LOW);
-    analogWrite(MAPWM, Speed);
-    analogWrite(MBPWM, Speed);
-    break;
-  }
 
 } // End Loop
